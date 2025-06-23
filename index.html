@@ -1,0 +1,2173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School Sport Championship</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom styles to ensure full height and smooth transitions */
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: 'Inter', sans-serif; /* Using Inter font as per instructions */
+            background-color: #f8fafc; /* Lighter background */
+        }
+        .page-section {
+            display: none; /* Hide all sections by default */
+            animation: fadeIn 0.5s ease-in-out; /* Simple fade-in animation */
+            min-height: calc(100vh - 64px - 16px); /* Adjust based on navbar height and padding */
+        }
+        .page-section.active {
+            display: block; /* Show active section */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a0aec0; /* Slightly darker gray for thumb */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #718096; /* Even darker on hover */
+            cursor: pointer;
+        }
+
+        /* Styling for buttons with hover effects */
+        .btn-primary {
+            @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75;
+        }
+        .btn-secondary {
+            @apply bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-gray-400 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-75;
+        }
+        .btn-danger {
+            @apply bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75;
+        }
+
+        /* Modal specific styles */
+        .modal {
+            display: flex; /* Hidden by default, changed to flex for centering */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.5); /* Slightly darker overlay */
+            backdrop-filter: blur(8px); /* More pronounced blur */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25); /* Stronger shadow */
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            transform-origin: center; /* Ensures animation originates from center */
+        }
+
+        @keyframes slideIn {
+            from { transform: scale(0.9) translateY(-50px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-gradient-to-r from-blue-800 to-blue-600 p-4 shadow-lg sticky top-0 z-50 rounded-b-xl">
+        <div class="container mx-auto flex flex-wrap items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <span id="app-title-display" class="text-white text-2xl font-bold rounded-md px-3 py-1 bg-white bg-opacity-20 transition duration-300">School Sport Championship</span>
+                <input type="text" id="app-title-input" class="hidden bg-white bg-opacity-90 text-blue-800 text-2xl font-bold px-3 py-1 rounded-md border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300" style="width: 250px;">
+                <button id="edit-title-btn" class="text-white hover:text-blue-200 focus:outline-none transition-colors duration-200">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                </button>
+                <button id="save-title-btn" class="hidden bg-green-500 text-white text-sm py-1 px-3 rounded-md hover:bg-green-600 transition-colors duration-200">Simpan</button>
+                <button id="cancel-title-btn" class="hidden bg-red-500 text-white text-sm py-1 px-3 rounded-md hover:bg-red-600 transition-colors duration-200">Batal</button>
+            </div>
+
+            <button id="nav-toggle" class="text-white block lg:hidden focus:outline-none">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <div id="nav-content" class="w-full lg:flex lg:items-center lg:w-auto hidden transition-all duration-300 ease-in-out">
+                <ul class="lg:flex items-center justify-between text-base pt-4 lg:pt-0">
+                    <li><a href="#participant-registration" class="page-link block lg:inline-block text-white hover:text-blue-200 px-4 py-2 rounded-lg transition duration-300" data-page="participant-registration-page">Pendaftaran Peserta & Rumah</a></li>
+                    <li><a href="#event-management" class="page-link block lg:inline-block text-white hover:text-blue-200 px-4 py-2 rounded-lg transition duration-300" data-page="event-management-page">Pengurusan Acara</a></li>
+                    <li><a href="#results" class="page-link block lg:inline-block text-white hover:text-blue-200 px-4 py-2 rounded-lg transition duration-300" data-page="results-page">Keputusan</a></li>
+                    <li><a href="#house-points" class="page-link block lg:inline-block text-white hover:text-blue-200 px-4 py-2 rounded-lg transition duration-300" data-page="house-standings-page">Mata & Kedudukan Rumah</a></li>
+                    <li><a href="#best-athlete" class="page-link block lg:inline-block text-white hover:text-blue-200 px-4 py-2 rounded-lg transition duration-300" data-page="best-athlete-page">Olahragawan/wati Terbaik</a></li>
+                    <li><a href="#sukantara-points" class="page-link block lg:inline-block text-white hover:text-blue-200 px-4 py-2 rounded-lg transition duration-300" data-page="sukantara-points-page">Mata Sukantara</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="container mx-auto p-4 flex-grow">
+
+        <!-- Custom Alert Modal -->
+        <div id="custom-alert-modal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-button" id="close-modal-btn">&times;</span>
+                <p id="modal-message" class="text-lg font-semibold text-gray-800"></p>
+                <button id="modal-ok-btn" class="btn-primary mt-4">OK</button>
+            </div>
+        </div>
+
+        <!-- Custom Confirmation Modal -->
+        <div id="confirmation-modal" class="modal hidden">
+            <div class="modal-content">
+                <p id="confirmation-message" class="text-lg font-semibold text-gray-800 mb-4"></p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-yes-btn" class="btn-danger">Ya</button>
+                    <button id="confirm-no-btn" class="btn-secondary">Tidak</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Participant & House Registration Page -->
+        <section id="participant-registration-page" class="page-section p-6 bg-white rounded-xl shadow-lg mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Pendaftaran Peserta & Rumah</h2>
+
+            <!-- Individual Participant Registration Form -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Daftar Peserta Individu</h3>
+                <form id="participant-form" class="space-y-4">
+                    <div>
+                        <label for="p-name" class="block text-gray-700 text-sm font-bold mb-2">Nama:</label>
+                        <input type="text" id="p-name" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="p-gender" class="block text-gray-700 text-sm font-bold mb-2">Jantina:</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="p-gender" value="L" class="form-radio text-blue-600 h-4 w-4" required>
+                                <span class="ml-2 text-gray-700">Lelaki</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="p-gender" value="P" class="form-radio text-pink-600 h-4 w-4" required>
+                                <span class="ml-2 text-gray-700">Perempuan</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="p-class" class="block text-gray-700 text-sm font-bold mb-2">Kelas:</label>
+                        <input type="text" id="p-class" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="p-house" class="block text-gray-700 text-sm font-bold mb-2">Rumah:</label>
+                        <select id="p-house" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" required>
+                            <!-- Options will be populated by JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2">Acara:</label>
+                        <div id="p-events-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            <!-- Event checkboxes will be populated by JS -->
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Daftar Peserta</button>
+                </form>
+            </div>
+
+            <!-- List of Registered Participants -->
+            <div>
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Peserta Berdaftar</h3>
+                <div class="overflow-x-auto rounded-lg shadow-md">
+                    <table class="min-w-full bg-white rounded-lg">
+                        <thead class="bg-blue-100 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Nama</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Jantina</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Kelas</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Rumah</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Acara</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participants-list" class="divide-y divide-gray-100">
+                            <!-- Participants will be listed here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Event Management Page -->
+        <section id="event-management-page" class="page-section p-6 bg-white rounded-xl shadow-lg mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Pengurusan Acara</h2>
+
+            <!-- Add New Event Form -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Tambah Acara Baharu</h3>
+                <form id="event-form" class="space-y-4">
+                    <div>
+                        <label for="e-name" class="block text-gray-700 text-sm font-bold mb-2">Nama Acara:</label>
+                        <input type="text" id="e-name" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" required>
+                    </div>
+                    <div>
+                        <label for="e-category" class="block text-gray-700 text-sm font-bold mb-2">Kategori:</label>
+                        <select id="e-category" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" required>
+                            <option value="">Pilih Kategori</option>
+                            <option value="Track">Balapan</option>
+                            <option value="Field">Padang</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="e-venue" class="block text-gray-700 text-sm font-bold mb-2">Tempat:</label>
+                        <input type="text" id="e-venue" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" required>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="e-is-relay" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-2">
+                        <label for="e-is-relay" class="text-gray-700 text-sm font-bold">Adakah ini Acara Berganti-ganti (Relay)?</label>
+                    </div>
+                    <div>
+                        <label for="e-record-type" class="block text-gray-700 text-sm font-bold mb-2">Jenis Rekod:</label>
+                        <select id="e-record-type" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                            <option value="None">Tiada</option>
+                            <option value="Time">Masa (cth: 10.5 saat)</option>
+                            <option value="Distance">Jarak (cth: 5.2 meter)</option>
+                        </select>
+                    </div>
+                    <div id="e-record-unit-container" class="hidden">
+                        <label for="e-record-unit" class="block text-gray-700 text-sm font-bold mb-2">Unit Rekod (cth: saat, meter):</label>
+                        <input type="text" id="e-record-unit" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="cth: saat, meter">
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Tambah Acara</button>
+                </form>
+            </div>
+
+            <!-- List of All Events -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Semua Acara</h3>
+                <div class="overflow-x-auto rounded-lg shadow-md">
+                    <table class="min-w-full bg-white rounded-lg">
+                        <thead class="bg-blue-100 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Nama Acara</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Kategori</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Tempat</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Relay</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Jenis Rekod</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Unit Rekod</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="events-list" class="divide-y divide-gray-100">
+                            <!-- Events will be listed here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <button id="download-events-csv" class="btn-secondary mt-4">Muat Turun CSV Acara & Peserta</button>
+            </div>
+
+
+            <!-- Participants per Event (Table Style) -->
+            <div class="mt-8">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Peserta Mengikut Acara</h3>
+                <div id="participants-by-event-list" class="space-y-6">
+                    <!-- Dynamic content will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Results Page -->
+        <section id="results-page" class="page-section p-6 bg-white rounded-xl shadow-lg mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Masukkan Keputusan Acara</h2>
+
+            <form id="results-form" class="space-y-4">
+                <div>
+                    <label for="r-event" class="block text-gray-700 text-sm font-bold mb-2">Pilih Acara:</label>
+                    <select id="r-event" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" required>
+                        <option value="">Pilih Acara</option>
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+
+                <div id="individual-winner-section">
+                    <p class="text-gray-700 text-sm font-bold mb-2">Pilih Pemenang (Acara Individu):</p>
+                    <div>
+                        <label for="r-first" class="block text-gray-700 text-sm font-bold mb-2">Tempat Pertama:</label>
+                        <select id="r-first" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                            <option value="">Pilih Peserta</option>
+                            <!-- Populated by JS -->
+                        </select>
+                        <div id="r-first-record-container" class="hidden mt-2">
+                            <input type="number" step="0.01" id="r-first-record" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="Rekod">
+                            <span id="r-first-unit" class="text-sm text-gray-600 ml-2"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="r-second" class="block text-gray-700 text-sm font-bold mb-2">Tempat Kedua:</label>
+                        <select id="r-second" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                            <option value="">Pilih Peserta</option>
+                            <!-- Populated by JS -->
+                        </select>
+                        <div id="r-second-record-container" class="hidden mt-2">
+                            <input type="number" step="0.01" id="r-second-record" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="Rekod">
+                            <span id="r-second-unit" class="text-sm text-gray-600 ml-2"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="r-third" class="block text-gray-700 text-sm font-bold mb-2">Tempat Ketiga:</label>
+                        <select id="r-third" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                            <option value="">Pilih Peserta</option>
+                            <!-- Populated by JS -->
+                        </select>
+                        <div id="r-third-record-container" class="hidden mt-2">
+                            <input type="number" step="0.01" id="r-third-record" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="Rekod">
+                            <span id="r-third-unit" class="text-sm text-gray-600 ml-2"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="relay-winner-section" class="hidden">
+                    <p class="text-gray-700 text-sm font-bold mb-2">Masukkan Ahli Pasukan Pemenang (Acara Berganti-ganti):</p>
+                    <div class="mb-2">
+                        <label for="r-relay-first" class="block text-gray-700 text-sm font-bold mb-2">Ahli Pasukan Tempat Pertama (dipisahkan koma):</label>
+                        <input type="text" id="r-relay-first" placeholder="cth: Alice, Bob, Charlie" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                        <div id="r-relay-first-record-container" class="hidden mt-2">
+                            <input type="number" step="0.01" id="r-relay-first-record" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="Rekod">
+                            <span id="r-relay-first-unit" class="text-sm text-gray-600 ml-2"></span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="r-relay-second" class="block text-gray-700 text-sm font-bold mb-2">Ahli Pasukan Tempat Kedua (dipisahkan koma):</label>
+                        <input type="text" id="r-relay-second" placeholder="cth: David, Eve, Frank" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                        <div id="r-relay-second-record-container" class="hidden mt-2">
+                            <input type="number" step="0.01" id="r-relay-second-record" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="Rekod">
+                            <span id="r-relay-second-unit" class="text-sm text-gray-600 ml-2"></span>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="r-relay-third" class="block text-gray-700 text-sm font-bold mb-2">Ahli Pasukan Tempat Ketiga (dipisahkan koma):</label>
+                        <input type="text" id="r-relay-third" placeholder="cth: Grace, Henry, Ivy" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                        <div id="r-relay-third-record-container" class="hidden mt-2">
+                            <input type="number" step="0.01" id="r-relay-third-record" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" placeholder="Rekod">
+                            <span id="r-relay-third-unit" class="text-sm text-gray-600 ml-2"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary w-full">Hantar Keputusan</button>
+            </form>
+
+            <div class="mt-8">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Keputusan Direkodkan</h3>
+                <div class="overflow-x-auto rounded-lg shadow-md">
+                    <table class="min-w-full bg-white rounded-lg">
+                        <thead class="bg-blue-100 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Acara</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Tempat Pertama</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Tempat Kedua</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Tempat Ketiga</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recorded-results-list" class="divide-y divide-gray-100">
+                            <!-- Recorded results will be listed here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- House Points & Standings Page -->
+        <section id="house-standings-page" class="page-section p-6 bg-white rounded-xl shadow-lg mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Mata & Kedudukan Rumah</h2>
+
+            <div class="mb-8">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Edit Nama Rumah</h3>
+                <div id="edit-houses-container" class="space-y-4 p-4 border rounded-lg bg-gray-50">
+                    <!-- Add new house section -->
+                    <div class="flex items-center space-x-2 mb-4">
+                        <input type="text" id="new-house-name" placeholder="Nama Rumah Baharu"
+                               class="shadow appearance-none border rounded-lg flex-grow py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                        <button id="add-house-btn" class="btn-primary py-2 px-3 text-sm">Tambah Rumah</button>
+                    </div>
+                    <div id="editable-house-list" class="space-y-4">
+                        <!-- Editable house names and delete buttons will be rendered here -->
+                    </div>
+                </div>
+                <button id="save-house-names-btn" class="btn-primary mt-4 hidden">Simpan Nama Rumah yang Diedit</button>
+            </div>
+
+            <div class="overflow-x-auto rounded-lg shadow-md mb-8">
+                <table class="min-w-full bg-white rounded-lg">
+                    <thead class="bg-blue-100 border-b-2 border-gray-200">
+                        <tr>
+                            <th class="p-3 text-sm font-semibold tracking-wide text-left">Rumah</th>
+                            <th class="p-3 text-sm font-semibold tracking-wide text-left">🥇 Emas</th>
+                            <th class="p-3 text-sm font-semibold tracking-wide text-left">🥈 Perak</th>
+                            <th class="p-3 text-sm font-semibold tracking-wide text-left">🥉 Gangsa</th>
+                            <th class="p-3 text-sm font-semibold tracking-wide text-left">Mata Sukantara</th>
+                            <th class="p-3 text-sm font-semibold tracking-wide text-left">Jumlah Mata</th>
+                        </tr>
+                    </thead>
+                    <tbody id="house-standings-table" class="divide-y divide-gray-100">
+                        <!-- House standings will be listed here by JS -->
+                        <tr><td colspan="6" class="p-3 text-center text-gray-500">Memuatkan data rumah...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-8 bg-gray-50 p-4 rounded-xl shadow-inner">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4 text-center">Carta Bar Mata Rumah</h3>
+                <div class="relative max-w-2xl mx-auto h-96">
+                    <canvas id="housePointsChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Best Athlete Page -->
+        <section id="best-athlete-page" class="page-section p-6 bg-white rounded-xl shadow-lg mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Olahragawan/wati Terbaik & Rumah Juara</h2>
+
+            <div class="flex justify-center mb-6">
+                <select id="best-athlete-gender-filter" class="shadow border rounded-lg py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                    <option value="all">Semua</option>
+                    <option value="L">Lelaki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </div>
+
+            <div id="best-athlete-lists" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Content will be rendered dynamically by JS -->
+            </div>
+
+            <div class="bg-green-50 p-6 rounded-lg shadow-md text-center">
+                <h3 class="text-2xl font-semibold text-green-800 mb-4">Rumah Juara Keseluruhan</h3>
+                <p id="champion-house-name" class="text-3xl font-bold text-green-900">N/A</p>
+                <p id="champion-house-points" class="text-gray-700">Jumlah Mata: 0</p>
+            </div>
+        </section>
+
+        <!-- Sukantara Points Page -->
+        <section id="sukantara-points-page" class="page-section p-6 bg-white rounded-xl shadow-lg mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Urus Mata Sukantara</h2>
+
+            <form id="sukantara-form" class="space-y-4 mb-8">
+                <div>
+                    <label for="s-house" class="block text-gray-700 text-sm font-bold mb-2">Pilih Rumah:</label>
+                    <select id="s-house" class="shadow border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" required>
+                        <!-- Options populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="s-points" class="block text-gray-700 text-sm font-bold mb-2">Mata untuk Ditambah/Ditolak:</label>
+                    <input type="number" id="s-points" class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500" value="0" required>
+                </div>
+                <button type="submit" class="btn-primary w-full">Kemaskini Mata Sukantara</button>
+            </form>
+
+            <div class="mt-8">
+                <h3 class="text-2xl font-semibold text-gray-700 mb-4">Mata Sukantara Semasa</h3>
+                <div class="overflow-x-auto rounded-lg shadow-md">
+                    <table class="min-w-full bg-white rounded-lg">
+                        <thead class="bg-blue-100 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Rumah</th>
+                                <th class="p-3 text-sm font-semibold tracking-wide text-left">Mata Sukantara</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sukantara-points-table" class="divide-y divide-gray-100">
+                            <!-- Sukantara points will be listed here by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4 text-center rounded-t-xl mt-8">
+        <p>&copy; 2025 Kejohanan Sukan Sekolah. Hak cipta terpelihara.</p>
+    </footer>
+
+    <script>
+        // --- Global Variables and Initial Data Setup ---
+        let appTitle = "Kejohanan Sukan Sekolah"; // Default app title in Malay
+        let houses = [
+            { name: "Naga Merah", gold: 0, silver: 0, bronze: 0, sukantaraPoints: 0, totalPoints: 0 },
+            { name: "Griffin Hijau", gold: 0, silver: 0, bronze: 0, sukantaraPoints: 0, totalPoints: 0 },
+            { name: "Phoenix Biru", gold: 0, silver: 0, bronze: 0, sukantaraPoints: 0, totalPoints: 0 },
+            { name: "Unicorn Kuning", gold: 0, silver: 0, bronze: 0, sukantaraPoints: 0, totalPoints: 0 }
+        ];
+        // participant: { id: string, name: string, gender: string (L/P), class: string, house: string, events: string[], medals: { gold: 0, silver: 0, bronze: 0 } }
+        let participants = [];
+        // event: { id: string, name: string, category: string, venue: string, isRelay: boolean, recordType: string, recordUnit: string, laneAssignments: { participantId: string, lane: number }[] }
+        let events = [];
+        // result: { eventId: string, first: { type: 'participant'|'team', id?: string, name: string, house?: string, members?: string[], record?: number }, second: ..., third: ... }
+        let results = [];
+
+        // --- Local Storage Helpers ---
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function saveData(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+            } catch (e) {
+                console.error(`Ralat menyimpan data ke localStorage untuk kunci "${key}":`, e);
+                showModal('Ralat menyimpan data. Sila semak tetapan storan pelayar.');
+            }
+        }
+
+        function loadData(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.error(`Ralat memuatkan data dari localStorage untuk kunci "${key}":`, e);
+                showModal('Ralat memuatkan data. Data mungkin rosak atau hilang.');
+                return null;
+            }
+        }
+
+        function initLocalStorage() {
+            // Load existing data or initialize with defaults
+            appTitle = loadData('appTitle') || "Kejohanan Sukan Sekolah"; // Load app title
+            houses = loadData('houses') || houses;
+            participants = loadData('participants') || [];
+            events = loadData('events') || [];
+            results = loadData('results') || [];
+
+            // Ensure new properties are initialized for existing data structures
+            houses.forEach(house => {
+                if (house.sukantaraPoints === undefined) house.sukantaraPoints = 0;
+                if (house.totalPoints === undefined) house.totalPoints = 0; // Will be recalculated
+            });
+            participants.forEach(p => {
+                if (!p.medals) p.medals = { gold: 0, silver: 0, bronze: 0 };
+                if (p.gender === undefined) p.gender = 'L'; // Default gender if not present
+            });
+            events.forEach(event => {
+                if (event.recordType === undefined) event.recordType = 'None';
+                if (event.recordUnit === undefined) event.recordUnit = '';
+                if (event.laneAssignments === undefined) event.laneAssignments = []; // Initialize laneAssignments
+                // Remove the 'date' property if it exists from previous versions
+                if (event.date !== undefined) delete event.date;
+            });
+            results.forEach(result => {
+                // Ensure record property exists for results, initialize if missing
+                if (result.first && result.first.record === undefined) result.first.record = null;
+                if (result.second && result.second.record === undefined) result.second.record = null;
+                if (result.third && result.third.record === undefined) result.third.record = null;
+            });
+
+            saveData('appTitle', appTitle); // Save app title
+            saveData('houses', houses);
+            saveData('participants', participants);
+            saveData('events', events);
+            saveData('results', results);
+        }
+
+        // --- Custom Modal Functions (Alert and Confirmation) ---
+        const customAlertModal = document.getElementById('custom-alert-modal');
+        const modalMessage = document.getElementById('modal-message');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const modalOkBtn = document.getElementById('modal-ok-btn');
+
+        function showModal(message) {
+            modalMessage.textContent = message;
+            customAlertModal.classList.remove('hidden');
+            customAlertModal.classList.add('flex'); // Use flex to center
+        }
+
+        function hideModal() {
+            customAlertModal.classList.add('hidden');
+            customAlertModal.classList.remove('flex');
+        }
+
+        closeModalBtn.addEventListener('click', hideModal);
+        modalOkBtn.addEventListener('click', hideModal);
+        window.addEventListener('click', (event) => {
+            if (event.target == customAlertModal) {
+                hideModal();
+            }
+        });
+
+        // Confirmation Modal Elements
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmationMessage = document.getElementById('confirmation-message');
+        const confirmYesBtn = document.getElementById('confirm-yes-btn');
+        const confirmNoBtn = document.getElementById('confirm-no-btn');
+        let confirmationCallback = null; // Stores the callback function for confirmation
+
+        function showConfirmation(message, callback) {
+            confirmationMessage.textContent = message;
+            confirmationCallback = callback;
+            confirmationModal.classList.remove('hidden');
+            confirmationModal.classList.add('flex');
+        }
+
+        function hideConfirmation() {
+            confirmationModal.classList.add('hidden');
+            confirmationModal.classList.remove('flex');
+            confirmationCallback = null;
+        }
+
+        confirmYesBtn.addEventListener('click', () => {
+            if (confirmationCallback) {
+                confirmationCallback(true);
+            }
+            hideConfirmation();
+        });
+
+        confirmNoBtn.addEventListener('click', () => {
+            if (confirmationCallback) {
+                confirmationCallback(false);
+            }
+            hideConfirmation();
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == confirmationModal) {
+                if (confirmationCallback) {
+                    confirmationCallback(false); // Treat clicking outside as "No"
+                }
+                hideConfirmation();
+            }
+        });
+
+
+        // --- Navigation ---
+        const pageLinks = document.querySelectorAll('.page-link');
+        const pageSections = document.querySelectorAll('.page-section');
+        const navToggle = document.getElementById('nav-toggle');
+        const navContent = document.getElementById('nav-content');
+
+        function showPage(pageId) {
+            pageSections.forEach(section => {
+                section.classList.remove('active');
+                section.style.display = 'none'; // Ensure display is none for hidden
+            });
+            const activePage = document.getElementById(pageId);
+            if (activePage) {
+                activePage.classList.add('active');
+                activePage.style.display = 'block'; // Ensure display is block for active
+                // Trigger rendering for the active page
+                switch (pageId) {
+                    case 'participant-registration-page':
+                        renderParticipantRegistration();
+                        break;
+                    case 'event-management-page':
+                        renderEventManagement();
+                        break;
+                    case 'results-page':
+                        renderResultsPage();
+                        break;
+                    case 'house-standings-page':
+                        renderHouseStandings();
+                        break;
+                    case 'best-athlete-page':
+                        renderBestAthletes();
+                        break;
+                    case 'sukantara-points-page':
+                        renderSukantaraPoints();
+                        break;
+                }
+            }
+            if (navContent.classList.contains('active')) { // Close mobile nav if open
+                 navContent.classList.remove('active', 'block');
+                 navContent.classList.add('hidden');
+            }
+        }
+
+        pageLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = e.target.dataset.page;
+                showPage(pageId);
+            });
+        });
+
+        navToggle.addEventListener('click', () => {
+            navContent.classList.toggle('hidden');
+            navContent.classList.toggle('active'); // Add/remove active class for CSS transition
+            navContent.classList.toggle('block'); // Toggle block for display
+        });
+
+
+        // --- App Title Editing Functions ---
+        const appTitleDisplay = document.getElementById('app-title-display');
+        const appTitleInput = document.getElementById('app-title-input');
+        const editTitleBtn = document.getElementById('edit-title-btn');
+        const saveTitleBtn = document.getElementById('save-title-btn');
+        const cancelTitleBtn = document.getElementById('cancel-title-btn');
+        let originalAppTitle = ""; // To store the title before editing
+
+        function renderAppTitle() {
+            appTitleDisplay.textContent = appTitle;
+            document.title = appTitle; // Update browser tab title
+        }
+
+        function toggleEditTitle(isEditing) {
+            if (isEditing) {
+                originalAppTitle = appTitle; // Save current title before editing
+                appTitleDisplay.classList.add('hidden');
+                appTitleInput.classList.remove('hidden');
+                appTitleInput.value = appTitle;
+                appTitleInput.focus();
+                editTitleBtn.classList.add('hidden');
+                saveTitleBtn.classList.remove('hidden');
+                cancelTitleBtn.classList.remove('hidden');
+            } else {
+                appTitleDisplay.classList.remove('hidden');
+                appTitleInput.classList.add('hidden');
+                editTitleBtn.classList.remove('hidden');
+                saveTitleBtn.classList.add('hidden');
+                cancelTitleBtn.classList.add('hidden');
+            }
+        }
+
+        editTitleBtn.addEventListener('click', () => toggleEditTitle(true));
+        saveTitleBtn.addEventListener('click', () => {
+            const newTitle = appTitleInput.value.trim();
+            if (newTitle) {
+                appTitle = newTitle;
+                saveData('appTitle', appTitle);
+                renderAppTitle();
+                toggleEditTitle(false);
+                showModal('Tajuk aplikasi berjaya dikemas kini!');
+            } else {
+                showModal('Tajuk aplikasi tidak boleh kosong.');
+                appTitleInput.focus();
+            }
+        });
+        cancelTitleBtn.addEventListener('click', () => {
+            appTitle = originalAppTitle; // Revert to original
+            renderAppTitle();
+            toggleEditTitle(false);
+            showModal('Pembatalan pengeditan tajuk aplikasi.');
+        });
+        // Allow saving with Enter key
+        appTitleInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                saveTitleBtn.click();
+            }
+        });
+
+
+        // --- Participant & House Registration Functions ---
+        const participantForm = document.getElementById('participant-form');
+        const pName = document.getElementById('p-name');
+        const pGender = document.querySelectorAll('input[name="p-gender"]'); // Radio buttons for gender
+        const pClass = document.getElementById('p-class');
+        const pHouse = document.getElementById('p-house');
+        const pEventsCheckboxes = document.getElementById('p-events-checkboxes');
+        const participantsList = document.getElementById('participants-list');
+
+        function populateHouseDropdowns() {
+            // Clear existing options first
+            pHouse.innerHTML = '<option value="">Pilih Rumah</option>';
+            document.getElementById('s-house').innerHTML = '<option value="">Pilih Rumah</option>';
+
+            houses.forEach(house => {
+                const option = document.createElement('option');
+                option.value = house.name;
+                option.textContent = house.name;
+                pHouse.appendChild(option);
+
+                const sOption = document.createElement('option');
+                sOption.value = house.name;
+                sOption.textContent = house.name;
+                document.getElementById('s-house').appendChild(sOption);
+            });
+        }
+
+        function populateEventCheckboxes() {
+            pEventsCheckboxes.innerHTML = ''; // Clear existing checkboxes
+            if (events.length === 0) {
+                pEventsCheckboxes.innerHTML = '<p class="text-gray-500">Tiada acara ditambah lagi. Sila tambah acara dalam Pengurusan Acara.</p>';
+                return;
+            }
+            events.forEach(event => {
+                const div = document.createElement('div');
+                div.classList.add('flex', 'items-center');
+                div.innerHTML = `
+                    <input type="checkbox" id="event-${event.id}" name="events" value="${event.id}" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                    <label for="event-${event.id}" class="ml-2 text-sm text-gray-700">${event.name} ${event.isRelay ? ' (Berganti-ganti)' : ''}</label>
+                `;
+                pEventsCheckboxes.appendChild(div);
+            });
+        }
+
+        function renderParticipantsList() {
+            participantsList.innerHTML = ''; // Clear existing list
+            if (participants.length === 0) {
+                participantsList.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-500">Tiada peserta berdaftar lagi.</td></tr>';
+                return;
+            }
+            participants.forEach(p => {
+                const row = document.createElement('tr');
+                row.classList.add('bg-white', 'hover:bg-gray-50'); /* Added hover effect */
+                const registeredEventNames = p.events.map(eventId => {
+                    const event = events.find(e => e.id === eventId);
+                    return event ? `${event.name} ${event.isRelay ? '(Berganti-ganti)' : ''}` : 'Acara Tidak Diketahui';
+                }).join(', ');
+
+                row.innerHTML = `
+                    <td class="p-3 text-sm text-gray-700">${p.name}</td>
+                    <td class="p-3 text-sm text-gray-700">${p.gender}</td>
+                    <td class="p-3 text-sm text-gray-700">${p.class}</td>
+                    <td class="p-3 text-sm text-gray-700">${p.house}</td>
+                    <td class="p-3 text-sm text-gray-700">${registeredEventNames || 'Tiada'}</td>
+                    <td class="p-3 text-sm text-gray-700">
+                        <button class="btn-danger p-1 text-xs delete-participant-btn" data-id="${p.id}">Padam</button>
+                    </td>
+                `;
+                participantsList.appendChild(row);
+            });
+
+            document.querySelectorAll('.delete-participant-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const participantIdToDelete = e.target.dataset.id;
+                    deleteParticipant(participantIdToDelete);
+                });
+            });
+        }
+
+        function deleteParticipant(id) {
+            participants = participants.filter(p => p.id !== id);
+            saveData('participants', participants);
+            renderParticipantsList();
+            updateAllCalculations(); // Recalculate best athletes if a participant is deleted
+            showModal('Peserta berjaya dipadam.');
+        }
+
+        participantForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = pName.value.trim();
+            const gender = document.querySelector('input[name="p-gender"]:checked')?.value; // Get selected gender
+            const className = pClass.value.trim();
+            const house = pHouse.value;
+            const selectedEvents = Array.from(pEventsCheckboxes.querySelectorAll('input[name="events"]:checked'))
+                                      .map(checkbox => checkbox.value);
+
+            if (!name || !gender || !className || !house || selectedEvents.length === 0) {
+                showModal('Sila lengkapkan semua butiran peserta dan pilih sekurang-kurangnya satu acara.');
+                return;
+            }
+
+            const newParticipant = {
+                id: generateUUID(),
+                name,
+                gender, // Add gender to the participant object
+                class: className,
+                house,
+                events: selectedEvents,
+                medals: { gold: 0, silver: 0, bronze: 0 } // Initialize medals for best athlete calculation
+            };
+
+            participants.push(newParticipant);
+            saveData('participants', participants);
+            showModal('Peserta berjaya didaftarkan!');
+            participantForm.reset();
+            populateEventCheckboxes(); // Re-render checkboxes to clear selections
+            renderParticipantsList();
+        });
+
+        function renderParticipantRegistration() {
+            populateHouseDropdowns();
+            populateEventCheckboxes();
+            renderParticipantsList();
+        }
+
+        // --- Event Management Functions ---
+        const eventForm = document.getElementById('event-form');
+        const eName = document.getElementById('e-name');
+        const eCategory = document.getElementById('e-category');
+        const eVenue = document.getElementById('e-venue');
+        const eIsRelay = document.getElementById('e-is-relay');
+        const eRecordType = document.getElementById('e-record-type');
+        const eRecordUnitContainer = document.getElementById('e-record-unit-container');
+        const eRecordUnit = document.getElementById('e-record-unit');
+        const eventsListTable = document.getElementById('events-list');
+        const participantsByEventList = document.getElementById('participants-by-event-list');
+        const downloadEventsCsvBtn = document.getElementById('download-events-csv');
+
+        // Toggle record unit input visibility based on record type selection
+        eRecordType.addEventListener('change', () => {
+            if (eRecordType.value === 'Time' || eRecordType.value === 'Distance') {
+                eRecordUnitContainer.classList.remove('hidden');
+                eRecordUnit.setAttribute('required', 'true');
+                // Set default placeholder for unit
+                eRecordUnit.placeholder = eRecordType.value === 'Time' ? 'cth: saat, minit' : 'cth: meter, cm';
+            } else {
+                eRecordUnitContainer.classList.add('hidden');
+                eRecordUnit.removeAttribute('required');
+                eRecordUnit.value = ''; // Clear unit when not relevant
+            }
+        });
+
+        // --- NEW: Automate record type and unit based on category ---
+        eCategory.addEventListener('change', () => {
+            const selectedCategory = eCategory.value;
+            if (selectedCategory === 'Track') { // Balapan
+                eRecordType.value = 'Time';
+                eRecordUnit.value = 'saat';
+                eRecordUnitContainer.classList.remove('hidden');
+                eRecordUnit.setAttribute('required', 'true');
+                eRecordUnit.placeholder = 'cth: saat, minit';
+            } else if (selectedCategory === 'Field') { // Padang
+                eRecordType.value = 'Distance';
+                eRecordUnit.value = 'meter';
+                eRecordUnitContainer.classList.remove('hidden');
+                eRecordUnit.setAttribute('required', 'true');
+                eRecordUnit.placeholder = 'cth: meter, cm';
+            } else { // Tiada / Lain-lain
+                eRecordType.value = 'None';
+                eRecordUnit.value = '';
+                eRecordUnitContainer.classList.add('hidden');
+                eRecordUnit.removeAttribute('required');
+            }
+        });
+        // --- END NEW ---
+
+        function renderEventsList() {
+            eventsListTable.innerHTML = '';
+            if (events.length === 0) {
+                eventsListTable.innerHTML = '<tr><td colspan="7" class="p-3 text-center text-gray-500">Tiada acara ditambah lagi.</td></tr>';
+                return;
+            }
+            events.forEach(event => {
+                const row = document.createElement('tr');
+                row.classList.add('bg-white', 'hover:bg-gray-50'); /* Added hover effect */
+                row.innerHTML = `
+                    <td class="p-3 text-sm text-gray-700">${event.name}</td>
+                    <td class="p-3 text-sm text-gray-700">${event.category}</td>
+                    <td class="p-3 text-sm text-gray-700">${event.venue}</td>
+                    <td class="p-3 text-sm text-gray-700">${event.isRelay ? 'Ya' : 'Tidak'}</td>
+                    <td class="p-3 text-sm text-gray-700">${event.recordType}</td>
+                    <td class="p-3 text-sm text-gray-700">${event.recordUnit || 'N/A'}</td>
+                    <td class="p-3 text-sm text-gray-700">
+                        <button class="btn-danger p-1 text-xs delete-event-btn" data-id="${event.id}">Padam</button>
+                    </td>
+                `;
+                eventsListTable.appendChild(row);
+            });
+
+            document.querySelectorAll('.delete-event-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const eventIdToDelete = e.target.dataset.id;
+                    deleteEvent(eventIdToDelete);
+                });
+            });
+        }
+
+        function deleteEvent(id) {
+            events = events.filter(e => e.id !== id);
+            // Also remove this event from participants' registered events
+            participants.forEach(p => {
+                p.events = p.events.filter(eventId => eventId !== id);
+            });
+            // Also remove any results associated with this event
+            results = results.filter(r => r.eventId !== id);
+
+            saveData('events', events);
+            saveData('participants', participants);
+            saveData('results', results);
+            showModal('Acara berjaya dipadam. Peserta dan keputusan dikemas kini.');
+            renderEventManagement(); // Re-render everything
+            // Also re-render other pages that depend on events/participants/results
+            renderParticipantRegistration();
+            renderResultsPage();
+            updateAllCalculations(); // Recalculate standings and best athletes
+        }
+
+        // Shuffle array function (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function assignLanes(eventId) {
+            const eventIndex = events.findIndex(e => e.id === eventId);
+            if (eventIndex === -1) {
+                showModal('Acara tidak ditemui untuk penetapan lorong.');
+                return;
+            }
+
+            const event = events[eventIndex];
+            const participantsForEvent = participants.filter(p => p.events.includes(event.id));
+
+            if (participantsForEvent.length === 0) {
+                showModal('Tiada peserta berdaftar untuk acara ini untuk menetapkan lorong.');
+                return;
+            }
+
+            // Determine available lanes, up to a reasonable maximum (e.g., 8 or 10 lanes)
+            const maxLanes = Math.max(participantsForEvent.length, 8); // Ensure at least 8 lanes or num participants
+            let availableLanes = Array.from({ length: maxLanes }, (_, i) => i + 1);
+            availableLanes = shuffleArray(availableLanes); // Randomize the lane order
+
+            // Assign lanes
+            event.laneAssignments = [];
+            // Sort participants by name for consistent, but still random, assignment across multiple draws if lanes change
+            // This ensures the same participant consistently gets the same lane if the number of participants doesn't change
+            // and the shuffle is pseudo-random.
+            const sortedParticipants = [...participantsForEvent].sort((a, b) => a.name.localeCompare(b.name));
+
+            sortedParticipants.forEach((p, index) => {
+                const lane = availableLanes[index % availableLanes.length]; // Cycle lanes if more participants than maxLanes
+                event.laneAssignments.push({ participantId: p.id, lane: lane });
+            });
+
+            saveData('events', events);
+            showModal(`Lorong berjaya diundi untuk ${event.name}!`);
+            renderParticipantsByEvent(); // Re-render to show updated lanes
+        }
+
+        function renderParticipantsByEvent() {
+            participantsByEventList.innerHTML = ''; // Clear existing content
+
+            if (events.length === 0) {
+                participantsByEventList.innerHTML = '<p class="text-gray-500">Tiada acara untuk memaparkan peserta.</p>';
+                return;
+            }
+
+            events.forEach(event => {
+                const eventParticipants = participants.filter(p => p.events.includes(event.id));
+                const isTrackEvent = event.category === 'Track';
+
+                const eventDiv = document.createElement('div');
+                eventDiv.classList.add('bg-white', 'rounded-lg', 'shadow-md', 'p-4');
+                eventDiv.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                        <h4 class="text-xl font-semibold text-gray-800">${event.name} ${event.isRelay ? '(Berganti-ganti)' : ''}</h4>
+                        ${isTrackEvent ? `<button class="btn-secondary mt-2 sm:mt-0 draw-lanes-btn" data-event-id="${event.id}">Undi Lorong</button>` : ''}
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white rounded-lg border border-gray-200">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-2 text-sm font-semibold tracking-wide text-left border-b">Nama</th>
+                                    <th class="p-2 text-sm font-semibold tracking-wide text-left border-b">Kelas</th>
+                                    <th class="p-2 text-sm font-semibold tracking-wide text-left border-b">Rumah</th>
+                                    ${isTrackEvent ? '<th class="p-2 text-sm font-semibold tracking-wide text-left border-b">Lorong</th>' : ''}
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                ${eventParticipants.length > 0 ?
+                                    eventParticipants.map(p => {
+                                        const laneAssignment = event.laneAssignments ? event.laneAssignments.find(la => la.participantId === p.id) : null;
+                                        const laneDisplay = isTrackEvent && laneAssignment ? laneAssignment.lane : 'N/A';
+                                        return `
+                                            <tr class="hover:bg-gray-50"> <!-- Added hover effect -->
+                                                <td class="p-2 text-sm text-gray-700">${p.name}</td>
+                                                <td class="p-2 text-sm text-gray-700">${p.class}</td>
+                                                <td class="p-2 text-sm text-gray-700">${p.house}</td>
+                                                ${isTrackEvent ? `<td class="p-2 text-sm text-gray-700">${laneDisplay}</td>` : ''}
+                                            </tr>
+                                        `;
+                                    }).join('') :
+                                    `<tr><td colspan="${isTrackEvent ? '4' : '3'}" class="p-3 text-center text-gray-500">Tiada peserta berdaftar untuk acara ini lagi.</td></tr>`
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+                participantsByEventList.appendChild(eventDiv);
+            });
+
+            document.querySelectorAll('.draw-lanes-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const eventIdToDrawLanes = e.target.dataset.eventId;
+                    assignLanes(eventIdToDrawLanes);
+                });
+            });
+        }
+
+        // CSV Download Function
+        downloadEventsCsvBtn.addEventListener('click', () => {
+            let csv = "Nama Acara,Kategori,Tempat,Adakah Relay,Jenis Rekod,Unit Rekod,Nama Peserta,Kelas Peserta,Rumah Peserta,Lorong\n";
+
+            events.forEach(event => {
+                const eventParticipants = participants.filter(p => p.events.includes(event.id));
+                const isTrackEvent = event.category === 'Track';
+
+                if (eventParticipants.length === 0) {
+                    csv += `"${event.name}","${event.category}","${event.venue}",${event.isRelay ? 'Ya' : 'Tidak'},"${event.recordType}","${event.recordUnit || ''}",,"","",""\n`;
+                } else {
+                    eventParticipants.forEach(p => {
+                        const laneAssignment = event.laneAssignments ? event.laneAssignments.find(la => la.participantId === p.id) : null;
+                        const laneDisplay = isTrackEvent && laneAssignment ? laneAssignment.lane : '';
+                        csv += `"${event.name}","${event.category}","${event.venue}",${event.isRelay ? 'Ya' : 'Tidak'},"${event.recordType}","${event.recordUnit || ''}","${p.name}","${p.class}","${p.house}","${laneDisplay}"\n`;
+                    });
+                }
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            if (link.download !== undefined) { // feature detection
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'school_sports_events_participants.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                showModal('Pelayar anda tidak menyokong muat turun fail CSV secara langsung.');
+            }
+        });
+
+
+        eventForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = eName.value.trim();
+            const category = eCategory.value;
+            const venue = eVenue.value.trim();
+            const isRelay = eIsRelay.checked;
+            const recordType = eRecordType.value;
+            const recordUnit = eRecordUnit.value.trim();
+
+            if (!name || !category || !venue) {
+                showModal('Sila lengkapkan semua butiran acara.');
+                return;
+            }
+            if ((recordType === 'Time' || recordType === 'Distance') && !recordUnit) {
+                showModal('Sila berikan unit untuk jenis rekod.');
+                return;
+            }
+
+            const newEvent = {
+                id: generateUUID(),
+                name,
+                category,
+                venue,
+                isRelay,
+                recordType,
+                recordUnit: recordType !== 'None' ? recordUnit : '',
+                laneAssignments: [] // Initialize lane assignments for new events
+            };
+
+            events.push(newEvent);
+            saveData('events', events);
+            showModal('Acara berjaya ditambah!');
+            eventForm.reset();
+            eRecordUnitContainer.classList.add('hidden'); // Hide unit input after reset
+            // Manually trigger category change to reset fields
+            eCategory.dispatchEvent(new Event('change'));
+            renderEventManagement(); // Re-render both lists on this page
+            populateEventCheckboxes(); // Update participant registration events list
+            renderResultsPage(); // Update results page event dropdown
+        });
+
+        function renderEventManagement() {
+            renderEventsList();
+            renderParticipantsByEvent();
+        }
+
+        // --- Results Page Functions ---
+        const resultsForm = document.getElementById('results-form');
+        const rEventSelect = document.getElementById('r-event');
+        const individualWinnerSection = document.getElementById('individual-winner-section');
+        const relayWinnerSection = document.getElementById('relay-winner-section');
+
+        const rFirstSelect = document.getElementById('r-first');
+        const rSecondSelect = document.getElementById('r-second');
+        const rThirdSelect = document.getElementById('r-third');
+        const rFirstRecordContainer = document.getElementById('r-first-record-container');
+        const rFirstRecord = document.getElementById('r-first-record');
+        const rFirstUnit = document.getElementById('r-first-unit');
+        const rSecondRecordContainer = document.getElementById('r-second-record-container');
+        const rSecondRecord = document.getElementById('r-second-record');
+        const rSecondUnit = document.getElementById('r-second-unit');
+        const rThirdRecordContainer = document.getElementById('r-third-record-container');
+        const rThirdRecord = document.getElementById('r-third-record');
+        const rThirdUnit = document.getElementById('r-third-unit');
+
+        const rRelayFirstInput = document.getElementById('r-relay-first');
+        const rRelaySecondInput = document.getElementById('r-relay-second');
+        const rRelayThirdInput = document.getElementById('r-relay-third');
+        const rRelayFirstRecordContainer = document.getElementById('r-relay-first-record-container');
+        const rRelayFirstRecord = document.getElementById('r-relay-first-record');
+        const rRelayFirstUnit = document.getElementById('r-relay-first-unit');
+        const rRelaySecondRecordContainer = document.getElementById('r-relay-second-record-container');
+        const rRelaySecondRecord = document.getElementById('r-relay-second-record');
+        const rRelaySecondUnit = document.getElementById('r-relay-second-unit');
+        const rRelayThirdRecordContainer = document.getElementById('r-relay-third-record-container');
+        const rRelayThirdRecord = document.getElementById('r-relay-third-record');
+        const rRelayThirdUnit = document.getElementById('r-relay-third-unit');
+
+
+        const recordedResultsList = document.getElementById('recorded-results-list');
+
+        let currentSelectedEventDetails = null; // To keep track of the event selected in the dropdown
+
+        function populateResultsEventDropdown() {
+            rEventSelect.innerHTML = '<option value="">Pilih Acara</option>'; // Clear previous options
+            events.forEach(event => {
+                const option = document.createElement('option');
+                option.value = event.id;
+                option.textContent = `${event.name} (${event.isRelay ? 'Berganti-ganti' : 'Individu'})`;
+                // Store all relevant event details in dataset for easy retrieval
+                option.dataset.isRelay = event.isRelay;
+                option.dataset.recordType = event.recordType;
+                option.dataset.recordUnit = event.recordUnit || '';
+                rEventSelect.appendChild(option);
+            });
+            // Do NOT trigger change event here automatically, handle after loading existing value
+        }
+
+        function populateParticipantSelects(selectedEventId) {
+            const participantsForEvent = participants.filter(p => p.events.includes(selectedEventId));
+
+            // Helper to populate a select element
+            const fillSelect = (selectElement) => {
+                selectElement.innerHTML = '<option value="">Pilih Peserta</option>';
+                participantsForEvent.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = `${p.name} (${p.house})`;
+                    selectElement.appendChild(option);
+                });
+            };
+
+            fillSelect(rFirstSelect);
+            fillSelect(rSecondSelect);
+            fillSelect(rThirdSelect);
+        }
+
+        rEventSelect.addEventListener('change', (e) => {
+            const selectedEventId = e.target.value;
+            currentSelectedEventDetails = events.find(event => event.id === selectedEventId);
+
+            const isRelayEvent = currentSelectedEventDetails && currentSelectedEventDetails.isRelay;
+            const recordType = currentSelectedEventDetails ? currentSelectedEventDetails.recordType : 'None';
+            const recordUnit = currentSelectedEventDetails ? currentSelectedEventDetails.recordUnit : '';
+
+            // Toggle sections based on relay status
+            if (isRelayEvent) {
+                individualWinnerSection.classList.add('hidden');
+                relayWinnerSection.classList.remove('hidden');
+            } else {
+                individualWinnerSection.classList.remove('hidden');
+                relayWinnerSection.classList.add('hidden');
+                populateParticipantSelects(selectedEventId); // Populate individual selects
+            }
+
+            // Toggle record input fields and units
+            const recordContainers = [
+                rFirstRecordContainer, rSecondRecordContainer, rThirdRecordContainer,
+                rRelayFirstRecordContainer, rRelaySecondRecordContainer, rRelayThirdRecordContainer
+            ];
+            const recordInputs = [
+                rFirstRecord, rSecondRecord, rThirdRecord,
+                rRelayFirstRecord, rRelaySecondRecord, rRelayThirdRecord
+            ];
+            const recordUnits = [
+                rFirstUnit, rSecondUnit, rThirdUnit,
+                rRelayFirstUnit, rRelaySecondUnit, rRelayThirdUnit
+            ];
+
+            recordContainers.forEach((container, index) => {
+                if (recordType === 'Time' || recordType === 'Distance') {
+                    container.classList.remove('hidden');
+                    // Removed setAttribute('required', 'true') here.
+                    // Validation will now be handled explicitly in the submit listener.
+                    recordUnits[index].textContent = recordUnit;
+                } else {
+                    container.classList.add('hidden');
+                    // Removed removeAttribute('required') here.
+                    recordInputs[index].value = ''; // Clear record value
+                    recordUnits[index].textContent = '';
+                }
+            });
+
+            // Clear all inputs on event change, except for the event select itself
+            // We want to keep the event selected value
+            const formElementsToClear = resultsForm.querySelectorAll('input:not([type="submit"]), select:not(#r-event), textarea');
+            formElementsToClear.forEach(element => {
+                if (element.type === 'checkbox' || element.type === 'radio') {
+                    element.checked = false;
+                } else {
+                    element.value = '';
+                }
+            });
+
+            // If an event was selected, and there's an existing result for it, pre-fill the form
+            if (selectedEventId) {
+                const existingResult = results.find(r => r.eventId === selectedEventId);
+                if (existingResult) {
+                    if (existingResult.first && existingResult.first.type === 'participant') {
+                        rFirstSelect.value = existingResult.first.id || '';
+                        rFirstRecord.value = existingResult.first.record || '';
+                    } else if (existingResult.first && existingResult.first.type === 'team') {
+                        rRelayFirstInput.value = existingResult.first.name || '';
+                        rRelayFirstRecord.value = existingResult.first.record || '';
+                    }
+                    // Repeat for second and third place
+                    if (existingResult.second && existingResult.second.type === 'participant') {
+                        rSecondSelect.value = existingResult.second.id || '';
+                        rSecondRecord.value = existingResult.second.record || '';
+                    } else if (existingResult.second && existingResult.second.type === 'team') {
+                        rRelaySecondInput.value = existingResult.second.name || '';
+                        rRelaySecondRecord.value = existingResult.second.record || '';
+                    }
+
+                    if (existingResult.third && existingResult.third.type === 'participant') {
+                        rThirdSelect.value = existingResult.third.id || '';
+                        rThirdRecord.value = existingResult.third.record || '';
+                    } else if (existingResult.third && existingResult.third.type === 'team') {
+                        rRelayThirdInput.value = existingResult.third.name || '';
+                        rRelayThirdRecord.value = existingResult.third.record || '';
+                    }
+                }
+            }
+        });
+
+        function renderRecordedResults() {
+            recordedResultsList.innerHTML = '';
+            if (results.length === 0) {
+                recordedResultsList.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-gray-500">Tiada keputusan direkodkan lagi.</td></tr>';
+                return;
+            }
+
+            results.forEach(result => {
+                const event = events.find(e => e.id === result.eventId);
+                if (!event) return; // Skip if event not found
+
+                const getWinnerDisplay = (winner) => {
+                    if (!winner) return 'N/A';
+                    let display = '';
+                    if (winner.type === 'participant') {
+                        display = `${winner.name} (${winner.house})`;
+                    } else if (winner.type === 'team') {
+                        // For relay teams, members are displayed
+                        display = `${winner.name} (${winner.house || 'N/A'})`; // display team name (e.g. "Alice, Bob")
+                    }
+                    if (winner.record !== null && winner.record !== undefined) {
+                        display += ` (${winner.record} ${event.recordUnit || ''})`;
+                    }
+                    return display;
+                };
+
+                const row = document.createElement('tr');
+                row.classList.add('bg-white', 'hover:bg-gray-50'); /* Added hover effect */
+                row.innerHTML = `
+                    <td class="p-3 text-sm text-gray-700">${event.name} ${event.isRelay ? '(Berganti-ganti)' : ''}</td>
+                    <td class="p-3 text-sm text-gray-700">${getWinnerDisplay(result.first)}</td>
+                    <td class="p-3 text-sm text-gray-700">${getWinnerDisplay(result.second)}</td>
+                    <td class="p-3 text-sm text-gray-700">${getWinnerDisplay(result.third)}</td>
+                    <td class="p-3 text-sm text-gray-700">
+                        <button class="btn-danger p-1 text-xs delete-result-btn" data-event-id="${event.id}">Padam</button>
+                    </td>
+                `;
+                recordedResultsList.appendChild(row);
+            });
+
+            document.querySelectorAll('.delete-result-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const eventIdToDeleteResult = e.target.dataset.eventId;
+                    deleteResult(eventIdToDeleteResult);
+                });
+            });
+        }
+
+        function deleteResult(eventId) {
+            const initialResultsCount = results.length;
+            results = results.filter(r => r.eventId !== eventId);
+            if (results.length < initialResultsCount) { // Only if a result was actually removed
+                saveData('results', results);
+                updateAllCalculations(); // Recalculate everything after removing a result
+                showModal('Keputusan berjaya dipadam. Kedudukan dan olahragawan terbaik dikemas kini.');
+                renderResultsPage();
+            } else {
+                showModal('Tiada keputusan ditemui untuk acara ini untuk dipadam.');
+            }
+        }
+
+        resultsForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Always prevent default first
+
+            const eventId = rEventSelect.value;
+            if (!eventId) {
+                showModal('Sila pilih acara.');
+                return;
+            }
+
+            const event = events.find(e => e.id === eventId);
+            if (!event) {
+                showModal('Acara yang dipilih tidak ditemui.');
+                return;
+            }
+
+            // Explicit validation for record fields based on event type and recordType
+            const recordType = event.recordType;
+            const isRelayEvent = event.isRelay;
+
+            const getRecordValue = (inputElement) => {
+                const value = parseFloat(inputElement.value);
+                return isNaN(value) ? null : value;
+            };
+
+            let firstWinner = null, secondWinner = null, thirdWinner = null;
+
+            if (isRelayEvent) {
+                const firstNames = rRelayFirstInput.value.split(',').map(name => name.trim()).filter(Boolean);
+                const secondNames = rRelaySecondInput.value.split(',').map(name => name.trim()).filter(Boolean);
+                const thirdNames = rRelayThirdInput.value.split(',').map(name => name.trim()).filter(Boolean);
+
+                const getTeamInfo = (names, recordInput) => {
+                    if (names.length === 0) return null;
+                    const members = [];
+                    let teamHouse = null;
+                    let foundAllMembers = true;
+
+                    for (const name of names) {
+                        const participant = participants.find(p => p.name.toLowerCase() === name.toLowerCase());
+                        if (participant) {
+                            members.push(participant.id);
+                            if (!teamHouse) teamHouse = participant.house;
+                            else if (teamHouse !== participant.house) {
+                                showModal(`Amaran: Ahli pasukan "${name}" dari rumah yang berbeza dikesan untuk ${event.name}.`);
+                            }
+                        } else {
+                            foundAllMembers = false;
+                            showModal(`Amaran: Peserta "${name}" (dalam pasukan "${names.join(', ')}") tidak ditemui. Pingat tidak akan dikreditkan kepada individu ini.`);
+                        }
+                    }
+
+                    return {
+                        type: 'team',
+                        name: names.join(', '),
+                        house: teamHouse,
+                        members: members,
+                        record: getRecordValue(recordInput)
+                    };
+                };
+
+                firstWinner = getTeamInfo(firstNames, rRelayFirstRecord);
+                secondWinner = getTeamInfo(secondNames, rRelaySecondRecord);
+                thirdWinner = getTeamInfo(thirdNames, rRelayThirdRecord);
+
+            } else { // Individual Event
+                const getParticipantInfo = (participantId, recordInput) => {
+                    const p = participants.find(par => par.id === participantId);
+                    return p ? {
+                        type: 'participant',
+                        id: p.id,
+                        name: p.name,
+                        house: p.house,
+                        record: getRecordValue(recordInput)
+                    } : null;
+                };
+
+                // Validate if selected participants exist
+                if (rFirstSelect.value && !participants.find(p => p.id === rFirstSelect.value)) {
+                    showModal('Peserta tempat pertama yang dipilih tidak ditemui. Sila pilih semula atau semak pendaftaran peserta.');
+                    return;
+                }
+                if (rSecondSelect.value && !participants.find(p => p.id === rSecondSelect.value)) {
+                    showModal('Peserta tempat kedua yang dipilih tidak ditemui. Sila pilih semula atau semak pendaftaran peserta.');
+                    return;
+                }
+                if (rThirdSelect.value && !participants.find(p => p.id === rThirdSelect.value)) {
+                    showModal('Peserta tempat ketiga yang dipilih tidak ditemui. Sila pilih semula atau semak pendaftaran peserta.');
+                    return;
+                }
+
+                firstWinner = getParticipantInfo(rFirstSelect.value, rFirstRecord);
+                secondWinner = getParticipantInfo(rSecondSelect.value, rSecondRecord);
+                thirdWinner = getParticipantInfo(rThirdSelect.value, rThirdRecord);
+            }
+
+            // --- Consolidated Validation for Records and Placements ---
+            // If a record type is specified, ensure records are entered for placed winners.
+            if (recordType === 'Time' || recordType === 'Distance') {
+                if (firstWinner && getRecordValue(isRelayEvent ? rRelayFirstRecord : rFirstRecord) === null) {
+                    showModal(`Sila masukkan rekod ${recordType.toLowerCase()} untuk ${isRelayEvent ? 'pasukan' : 'peserta'} tempat pertama.`);
+                    return;
+                }
+                if (secondWinner && getRecordValue(isRelayEvent ? rRelaySecondRecord : rSecondRecord) === null) {
+                    showModal(`Sila masukkan rekod ${recordType.toLowerCase()} untuk ${isRelayEvent ? 'pasukan' : 'peserta'} tempat kedua.`);
+                    return;
+                }
+                if (thirdWinner && getRecordValue(isRelayEvent ? rRelayThirdRecord : rThirdRecord) === null) {
+                    showModal(`Sila masukkan rekod ${recordType.toLowerCase()} untuk ${isRelayEvent ? 'pasukan' : 'peserta'} tempat ketiga.`);
+                    return;
+                }
+            }
+
+            // At least one winner must be entered
+            if (!firstWinner && !secondWinner && !thirdWinner) {
+                showModal('Sila masukkan sekurang-kurangnya satu pemenang (tempat pertama, kedua, atau ketiga) untuk acara tersebut.');
+                return;
+            }
+
+            // Enforce sequential placement: 1st before 2nd, 2nd before 3rd
+            if (!firstWinner && (secondWinner || thirdWinner)) {
+                showModal('Anda mesti memasukkan pemenang tempat pertama sebelum pemenang tempat kedua atau ketiga.');
+                return;
+            }
+            if (!secondWinner && thirdWinner) {
+                showModal('Anda mesti memasukkan pemenang tempat kedua sebelum pemenang tempat ketiga.');
+                return;
+            }
+
+            // Prevent same participant from winning multiple places in individual event
+            if (!isRelayEvent) {
+                const placedParticipantIds = new Set();
+                if (firstWinner) placedParticipantIds.add(firstWinner.id);
+                if (secondWinner) {
+                    if (placedParticipantIds.has(secondWinner.id)) {
+                        showModal('Peserta yang sama tidak boleh dianugerahkan beberapa tempat dalam acara individu.');
+                        return;
+                    }
+                    placedParticipantIds.add(secondWinner.id);
+                }
+                if (thirdWinner) {
+                    if (placedParticipantIds.has(thirdWinner.id)) {
+                        showModal('Peserta yang sama tidak boleh dianugerahkan beberapa tempat dalam acara individu.');
+                        return;
+                    }
+                    placedParticipantIds.add(thirdWinner.id);
+                }
+            }
+
+
+            // Check if results already exist for this event and update them
+            const existingResultIndex = results.findIndex(r => r.eventId === eventId);
+            const newResult = {
+                eventId: eventId,
+                first: firstWinner,
+                second: secondWinner,
+                third: thirdWinner
+            };
+
+            if (existingResultIndex !== -1) {
+                results[existingResultIndex] = newResult;
+            } else {
+                results.push(newResult);
+            }
+
+            saveData('results', results);
+            showModal('Keputusan berjaya dihantar!');
+
+            // Store the ID of the event just processed
+            const lastProcessedEventId = eventId;
+
+            // Reset only the input fields, NOT the event selection
+            const formElementsToClear = resultsForm.querySelectorAll('input:not([type="submit"]), select:not(#r-event), textarea');
+            formElementsToClear.forEach(element => {
+                if (element.type === 'checkbox' || element.type === 'radio') {
+                    element.checked = false;
+                } else {
+                    element.value = '';
+                }
+            });
+
+            // Re-select the event in the dropdown and trigger its change event
+            // This will ensure the correct input fields (individual/relay, record) are shown
+            rEventSelect.value = lastProcessedEventId;
+            rEventSelect.dispatchEvent(new Event('change'));
+
+            updateAllCalculations(); // Recalculate standings and best athletes
+            renderResultsPage(); // Re-render recorded results list
+        });
+
+        function renderResultsPage() {
+            populateResultsEventDropdown();
+            renderRecordedResults();
+            // Important: If a previous event was selected, ensure its state is reflected after rendering
+            if (rEventSelect.value) {
+                rEventSelect.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // --- House Points & Standings Functions ---
+        let housePointsChart; // Chart.js instance
+        const houseStandingsTable = document.getElementById('house-standings-table');
+        const editHousesContainer = document.getElementById('edit-houses-container');
+        const saveHouseNamesBtn = document.getElementById('save-house-names-btn');
+        const newHouseNameInput = document.getElementById('new-house-name');
+        const addHouseBtn = document.getElementById('add-house-btn');
+        const editableHouseList = document.getElementById('editable-house-list'); // New container for editable houses
+
+        const medalPoints = {
+            gold: 5,
+            silver: 3,
+            bronze: 1
+        };
+
+        function calculateHouseStandings() {
+            // Reset house medals and points
+            houses.forEach(house => {
+                house.gold = 0;
+                house.silver = 0;
+                house.bronze = 0;
+                // Sukantara points are persistent, so don't reset them here
+                house.totalPoints = house.sukantaraPoints; // Start with Sukantara points
+            });
+
+            // Reset participant medals for re-calculation
+            participants.forEach(p => {
+                p.medals = { gold: 0, silver: 0, bronze: 0 };
+            });
+
+            results.forEach(result => {
+                const event = events.find(e => e.id === result.eventId);
+                if (!event) return; // Skip if event not found
+
+                // Function to award medal to house and individual(s)
+                const awardMedal = (winnerInfo, medalType) => {
+                    if (!winnerInfo) return;
+
+                    let houseName = null;
+                    let individualMedalRecipients = [];
+
+                    if (winnerInfo.type === 'participant') {
+                        houseName = winnerInfo.house;
+                        individualMedalRecipients.push(winnerInfo.id);
+                    } else if (winnerInfo.type === 'team' && winnerInfo.members) {
+                        // For relay teams, house points are based on the team's house
+                        // and individual medals are credited to each member.
+                        if (winnerInfo.house) {
+                            houseName = winnerInfo.house;
+                        } else if (winnerInfo.members.length > 0) {
+                            // Try to infer house from first member if not explicitly set on team
+                            const firstMember = participants.find(p => p.id === winnerInfo.members[0]);
+                            if (firstMember) houseName = firstMember.house;
+                        }
+
+                        individualMedalRecipients = winnerInfo.members;
+                    }
+
+                    // Award to house
+                    if (houseName) {
+                        const targetHouse = houses.find(h => h.name === houseName);
+                        if (targetHouse) {
+                            targetHouse[medalType]++;
+                            targetHouse.totalPoints += medalPoints[medalType];
+                        }
+                    }
+
+                    // Award to individual participants
+                    individualMedalRecipients.forEach(participantId => {
+                        const targetParticipant = participants.find(p => p.id === participantId);
+                        if (targetParticipant) {
+                            targetParticipant.medals[medalType]++;
+                        }
+                    });
+                };
+
+                awardMedal(result.first, 'gold');
+                awardMedal(result.second, 'silver');
+                awardMedal(result.third, 'bronze');
+            });
+
+            // Sort houses by total points (descending)
+            houses.sort((a, b) => b.totalPoints - a.totalPoints);
+
+            saveData('houses', houses);
+            saveData('participants', participants); // Save updated participant medals
+        }
+
+        function renderHouseStandingsTable() {
+            houseStandingsTable.innerHTML = '';
+            if (houses.length === 0) {
+                houseStandingsTable.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-gray-500">Tiada rumah ditakrifkan.</td></tr>';
+                return;
+            }
+            houses.forEach(house => {
+                const row = document.createElement('tr');
+                row.classList.add('bg-white', 'hover:bg-gray-50'); /* Added hover effect */
+                row.innerHTML = `
+                    <td class="p-3 text-sm font-semibold text-gray-800">${house.name}</td>
+                    <td class="p-3 text-sm text-gray-700">${house.gold}</td>
+                    <td class="p-3 text-sm text-gray-700">${house.silver}</td>
+                    <td class="p-3 text-sm text-gray-700">${house.bronze}</td>
+                    <td class="p-3 text-sm text-gray-700">${house.sukantaraPoints}</td>
+                    <td class="p-3 text-sm text-gray-700 font-bold">${house.totalPoints}</td>
+                `;
+                houseStandingsTable.appendChild(row);
+            });
+        }
+
+        function renderEditHouseNames() {
+            editableHouseList.innerHTML = ''; // Clear previous entries
+            if (houses.length === 0) {
+                editableHouseList.innerHTML = '<p class="text-gray-500">Tiada rumah untuk diedit. Tambah satu di atas!</p>';
+            }
+
+            houses.forEach((house, index) => {
+                const div = document.createElement('div');
+                div.classList.add('flex', 'items-center', 'space-x-2');
+                div.innerHTML = `
+                    <input type="text" id="edit-house-${index}" value="${house.name}" data-original-name="${house.name}"
+                           class="shadow appearance-none border rounded-lg flex-grow py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500">
+                    <button class="btn-danger p-2 text-xs delete-house-btn" data-house-name="${house.name}">Padam</button>
+                `;
+                editableHouseList.appendChild(div);
+            });
+            saveHouseNamesBtn.classList.remove('hidden'); // Always show save button if there are houses to potentially edit
+        }
+
+        addHouseBtn.addEventListener('click', () => {
+            const newName = newHouseNameInput.value.trim();
+            if (!newName) {
+                showModal('Nama rumah baharu tidak boleh kosong.');
+                return;
+            }
+            if (houses.some(h => h.name.toLowerCase() === newName.toLowerCase())) {
+                showModal('Nama rumah ini sudah wujud. Sila pilih nama lain.');
+                return;
+            }
+
+            const newHouse = {
+                name: newName,
+                gold: 0,
+                silver: 0,
+                bronze: 0,
+                sukantaraPoints: 0,
+                totalPoints: 0
+            };
+            houses.push(newHouse);
+            saveData('houses', houses);
+            showModal(`Rumah "${newName}" berjaya ditambah!`);
+            newHouseNameInput.value = ''; // Clear the input field
+            renderHouseStandings(); // Re-render all house related sections
+            populateHouseDropdowns(); // Update dropdowns in other forms
+        });
+
+        // Event delegation for delete buttons since they are dynamically added
+        editableHouseList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-house-btn')) {
+                const houseNameToDelete = e.target.dataset.houseName;
+                showConfirmation(`Adakah anda pasti ingin memadam "${houseNameToDelete}"? Semua peserta dan keputusan yang berkaitan dengan rumah ini juga akan dialih keluar. Tindakan ini tidak boleh dibatalkan.`, (confirmed) => {
+                    if (confirmed) {
+                        deleteHouse(houseNameToDelete);
+                    } else {
+                        showModal('Pemadaman rumah dibatalkan.');
+                    }
+                });
+            }
+        });
+
+        function deleteHouse(nameToDelete) {
+            // Remove the house itself
+            houses = houses.filter(h => h.name !== nameToDelete);
+
+            // Remove participants associated with this house
+            const initialParticipantCount = participants.length;
+            participants = participants.filter(p => p.house !== nameToDelete);
+            if (participants.length < initialParticipantCount) {
+                console.log(`Dihapus ${initialParticipantCount - participants.length} peserta dari rumah "${nameToDelete}" yang dipadam.`);
+            }
+
+
+            // Remove results where this house was a winner (for simplicity, remove the entire result entry)
+            const initialResultsCount = results.length;
+            results = results.filter(r =>
+                !(r.first && r.first.house === nameToDelete) &&
+                !(r.second && r.second.house === nameToDelete) &&
+                !(r.third && r.third.house === nameToDelete)
+            );
+            if (results.length < initialResultsCount) {
+                console.log(`Dihapus ${initialResultsCount - results.length} keputusan yang berkaitan dengan rumah "${nameToDelete}" yang dipadam.`);
+            }
+
+            saveData('houses', houses);
+            saveData('participants', participants);
+            saveData('results', results);
+
+            showModal(`Rumah "${nameToDelete}" dan peserta/keputusannya yang berkaitan berjaya dipadam.`);
+            renderHouseStandings(); // Re-render all house related sections
+            renderParticipantRegistration(); // Update participant list in case participants were deleted
+            renderResultsPage(); // Update results page in case results were deleted
+            populateHouseDropdowns(); // Update dropdowns in other forms
+            updateAllCalculations(); // Recalculate everything
+        }
+
+
+        saveHouseNamesBtn.addEventListener('click', () => {
+            let changesMade = false;
+            const newHouseNames = new Set();
+            const inputElements = editableHouseList.querySelectorAll('input[type="text"]');
+            const oldToNewNameMap = {};
+
+            // First pass: Validate uniqueness and build mapping
+            for (const input of inputElements) {
+                const oldName = input.dataset.originalName;
+                const newName = input.value.trim();
+
+                if (!newName) {
+                    showModal('Nama rumah tidak boleh kosong.');
+                    return;
+                }
+                if (newHouseNames.has(newName) && newName.toLowerCase() !== oldName.toLowerCase()) { // Check for new duplicates (case-insensitive)
+                    showModal(`Nama rumah "${newName}" duplikasi ditemui. Nama rumah mestilah unik.`);
+                    return;
+                }
+                newHouseNames.add(newName);
+                if (oldName !== newName) {
+                    oldToNewNameMap[oldName] = newName;
+                    changesMade = true;
+                }
+            }
+
+            if (!changesMade) {
+                showModal('Tiada perubahan dibuat pada nama rumah.');
+                return;
+            }
+
+            // Second pass: Apply changes
+            houses.forEach(house => {
+                const newName = oldToNewNameMap[house.name];
+                if (newName) {
+                    // Update house name
+                    const originalHouseName = house.name; // Store original name before update
+                    house.name = newName;
+
+                    // Update participants with the new house name
+                    participants.forEach(p => {
+                        if (p.house === originalHouseName) {
+                            p.house = newName;
+                        }
+                    });
+
+                    // Update results with the new house name for winners
+                    results.forEach(r => {
+                        if (r.first && r.first.house === originalHouseName) r.first.house = newName;
+                        if (r.second && r.second.house === originalHouseName) r.second.house = newName;
+                        if (r.third && r.third.house === originalHouseName) r.third.house = newName;
+                    });
+                }
+            });
+
+            saveData('houses', houses);
+            saveData('participants', participants);
+            saveData('results', results);
+            showModal('Nama rumah berjaya dikemas kini!');
+            updateAllCalculations(); // Recalculate everything after name changes
+            renderHouseStandings(); // Re-render the table and chart
+            populateHouseDropdowns(); // Update dropdowns in other forms
+        });
+
+
+        function renderHousePointsChart() {
+            const ctx = document.getElementById('housePointsChart').getContext('2d');
+
+            const houseNames = houses.map(h => h.name);
+            const totalPoints = houses.map(h => h.totalPoints);
+            const goldMedals = houses.map(h => h.gold);
+            const silverMedals = houses.map(h => h.silver);
+            const bronzeMedals = houses.map(h => h.bronze);
+
+            if (housePointsChart) {
+                housePointsChart.destroy(); // Destroy existing chart before creating a new one
+            }
+
+            housePointsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: houseNames,
+                    datasets: [
+                        {
+                            label: 'Jumlah Mata',
+                            data: totalPoints,
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)', // Blue
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pingat Emas',
+                            data: goldMedals,
+                            backgroundColor: 'rgba(255, 215, 0, 0.7)', // Gold
+                            borderColor: 'rgba(255, 215, 0, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pingat Perak',
+                            data: silverMedals,
+                            backgroundColor: 'rgba(192, 192, 192, 0.7)', // Silver
+                            borderColor: 'rgba(192, 192, 192, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pingat Gangsa',
+                            data: bronzeMedals,
+                            backgroundColor: 'rgba(205, 127, 50, 0.7)', // Bronze
+                            borderColor: 'rgba(205, 127, 50, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allows the chart to take the height of its container
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#4a5568' // Dark grey for Y-axis labels
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)' // Light grid lines
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#4a5568' // Dark grey for X-axis labels
+                            },
+                            grid: {
+                                display: false // No vertical grid lines
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#4a5568' // Dark grey for legend labels
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1,
+                            cornerRadius: 8
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderHouseStandings() {
+            calculateHouseStandings(); // Ensure calculations are up-to-date
+            renderHouseStandingsTable();
+            renderHousePointsChart();
+            renderEditHouseNames(); // Render editable house names
+        }
+
+        // --- Best Athlete Page Functions ---
+        const bestAthleteGenderFilter = document.getElementById('best-athlete-gender-filter');
+        const bestAthleteListsContainer = document.getElementById('best-athlete-lists');
+        const championHouseName = document.getElementById('champion-house-name');
+        const championHousePoints = document.getElementById('champion-house-points');
+
+        function compareAthletes(a, b) {
+            // Compare by gold medals (descending)
+            if (a.medals.gold !== b.medals.gold) {
+                return b.medals.gold - a.medals.gold;
+            }
+            // If gold medals are tied, compare by silver medals (descending)
+            if (a.medals.silver !== b.medals.silver) {
+                return b.medals.silver - a.medals.silver;
+            }
+            // If silver medals are tied, compare by bronze medals (descending)
+            return b.medals.bronze - a.medals.bronze;
+        }
+
+        function calculateBestAthletes() {
+            // No longer using weighted points, just medal counts for sorting
+            const sortedMaleAthletes = [...participants].filter(p => p.gender === 'L').sort(compareAthletes);
+            const sortedFemaleAthletes = [...participants].filter(p => p.gender === 'P').sort(compareAthletes);
+
+            return { sortedMaleAthletes, sortedFemaleAthletes };
+        }
+
+        function renderBestAthletes() {
+            const { sortedMaleAthletes, sortedFemaleAthletes } = calculateBestAthletes();
+            const selectedGenderFilter = bestAthleteGenderFilter.value;
+
+            bestAthleteListsContainer.innerHTML = ''; // Clear previous content
+
+            // Render Sportsmen (Lelaki) list
+            if (selectedGenderFilter === 'all' || selectedGenderFilter === 'L') {
+                const sportsmanDiv = document.createElement('div');
+                sportsmanDiv.classList.add('bg-blue-50', 'p-6', 'rounded-lg', 'shadow-md');
+                sportsmanDiv.innerHTML = `
+                    <h3 class="text-2xl font-semibold text-blue-800 mb-4 text-center">Olahragawan Terbaik (Lelaki)</h3>
+                    <div id="sportsman-list" class="space-y-3">
+                        ${sortedMaleAthletes.length > 0 ?
+                            sortedMaleAthletes.slice(0, 3).map((p, index) => `
+                                <div class="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between hover:bg-gray-100 transition duration-150">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="font-bold text-lg text-blue-700">${index + 1}.</span>
+                                        <div>
+                                            <p class="font-semibold text-gray-800">${p.name}</p>
+                                            <p class="text-sm text-gray-600">Kelas: ${p.class} | Rumah: ${p.house}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm text-gray-700">🥇${p.medals.gold} 🥈${p.medals.silver} 🥉${p.medals.bronze}</p>
+                                    </div>
+                                </div>
+                            `).join('')
+                            : '<p class="text-gray-500 text-center">Tiada olahragawan berdaftar atau bermedal.</p>'
+                        }
+                    </div>
+                `;
+                bestAthleteListsContainer.appendChild(sportsmanDiv);
+            }
+
+            // Render Sportswomen (Perempuan) list
+            if (selectedGenderFilter === 'all' || selectedGenderFilter === 'P') {
+                const sportswomanDiv = document.createElement('div');
+                sportswomanDiv.classList.add('bg-pink-50', 'p-6', 'rounded-lg', 'shadow-md');
+                sportswomanDiv.innerHTML = `
+                    <h3 class="text-2xl font-semibold text-pink-800 mb-4 text-center">Olahragawati Terbaik (Perempuan)</h3>
+                    <div id="sportswoman-list" class="space-y-3">
+                        ${sortedFemaleAthletes.length > 0 ?
+                            sortedFemaleAthletes.slice(0, 3).map((p, index) => `
+                                <div class="bg-white p-3 rounded-lg shadow-sm flex items-center justify-between hover:bg-gray-100 transition duration-150">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="font-bold text-lg text-pink-700">${index + 1}.</span>
+                                        <div>
+                                            <p class="font-semibold text-gray-800">${p.name}</p>
+                                            <p class="text-sm text-gray-600">Kelas: ${p.class} | Rumah: ${p.house}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-sm text-gray-700">🥇${p.medals.gold} 🥈${p.medals.silver} 🥉${p.medals.bronze}</p>
+                                    </div>
+                                </div>
+                            `).join('')
+                            : '<p class="text-gray-500 text-center">Tiada olahragawati berdaftar atau bermedal.</p>'
+                        }
+                    </div>
+                `;
+                bestAthleteListsContainer.appendChild(sportswomanDiv);
+            }
+
+            // Overall Champion House (this part remains the same logic based on totalPoints)
+            const champion = houses.reduce((prev, current) => (prev.totalPoints > current.totalPoints) ? prev : current, { totalPoints: -1 });
+            if (champion.name && champion.totalPoints > 0) { // Only display if there's a champion with points
+                championHouseName.textContent = champion.name;
+                championHousePoints.textContent = `Jumlah Mata: ${champion.totalPoints}`;
+            } else {
+                championHouseName.textContent = 'N/A';
+                championHousePoints.textContent = 'Tiada rumah juara lagi.';
+            }
+        }
+
+        bestAthleteGenderFilter.addEventListener('change', renderBestAthletes); // Re-render when filter changes
+
+
+        // --- Sukantara Points Page Functions ---
+        const sukantaraForm = document.getElementById('sukantara-form');
+        const sHouseSelect = document.getElementById('s-house');
+        const sPointsInput = document.getElementById('s-points');
+        const sukantaraPointsTable = document.getElementById('sukantara-points-table');
+
+        function renderSukantaraPointsTable() {
+            sukantaraPointsTable.innerHTML = '';
+            if (houses.length === 0) {
+                sukantaraPointsTable.innerHTML = '<tr><td colspan="2" class="p-3 text-center text-gray-500">Tiada rumah ditakrifkan.</td></tr>';
+                return;
+            }
+            houses.forEach(house => {
+                const row = document.createElement('tr');
+                row.classList.add('bg-white', 'hover:bg-gray-50'); /* Added hover effect */
+                row.innerHTML = `
+                    <td class="p-3 text-sm font-semibold text-gray-800">${house.name}</td>
+                    <td class="p-3 text-sm text-gray-700">${house.sukantaraPoints}</td>
+                `;
+                sukantaraPointsTable.appendChild(row);
+            });
+        }
+
+        sukantaraForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const houseName = sHouseSelect.value;
+            const pointsToAdd = parseInt(sPointsInput.value);
+
+            if (!houseName) {
+                showModal('Sila pilih rumah.');
+                return;
+            }
+            if (isNaN(pointsToAdd)) {
+                showModal('Sila masukkan nombor yang sah untuk mata.');
+                return;
+            }
+
+            const targetHouse = houses.find(h => h.name === houseName);
+            if (targetHouse) {
+                targetHouse.sukantaraPoints += pointsToAdd;
+                saveData('houses', houses);
+                showModal(`${pointsToAdd} mata Sukantara ditambah kepada ${houseName}.`);
+                sukantaraForm.reset();
+                renderSukantaraPoints(); // Re-render table
+                updateAllCalculations(); // Recalculate standings and best athletes
+            } else {
+                showModal('Rumah tidak ditemui.');
+            }
+        });
+
+        function renderSukantaraPoints() {
+            populateHouseDropdowns(); // Ensure dropdown is updated
+            renderSukantaraPointsTable();
+        }
+
+        // --- Master Update Function ---
+        function updateAllCalculations() {
+            calculateHouseStandings(); // Recalculates house points and participant medals
+            calculateBestAthletes();   // Recalculates best athletes based on updated participant medals
+            // No need to re-render pages directly here, as each page's render function will call this when shown
+        }
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initLocalStorage(); // Load data or set defaults
+            renderAppTitle(); // Render the app title on load
+            // Show the first page by default
+            showPage('participant-registration-page');
+            updateAllCalculations(); // Perform initial calculations on load
+        });
+    </script>
+</body>
+</html>
